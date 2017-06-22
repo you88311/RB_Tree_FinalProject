@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <malloc.h>
+#include <string.h>
 
 #define RED 1
 #define BLACK 2
@@ -429,6 +430,93 @@ void RB_inorder(RB_Tree* self, Node* tree, int* total, int* bn_count)
 		RB_inorder(self, tree->right, total, bn_count);
 	}
 }
+
+Node* search2(RB_Tree* self, Node* tree, Node*Parent, int val) //원래 search에 parent를 저장하는 기능 추가
+{                                                                         //nillnode일 경우 parent를 알 수 없기 때문
+	if (tree == self->nillnode || tree->value == val)
+	{
+		return tree;
+	}
+	*Parent = *tree;
+	if (tree->value <= val)
+	{
+		return search2(self, tree->right, Parent, val);
+	}
+	else
+	{
+		return search2(self, tree->left, Parent, val);
+	}
+}
+Node* succesor_search(RB_Tree* self, Node* tree)
+{
+	Node* Parent=NULL;
+	if (tree == self->nillnode)
+	{
+		return NULL;
+	}
+	Parent = tree->parent;
+	if (tree->right != self->nillnode) //오른쪽 자손이 있다면
+	{
+		tree = tree->right;
+		while (tree->left != self->nillnode)
+		{
+			tree = tree->left;
+		}
+		return tree;
+	}
+	else //오른쪽 자손이 없다면
+	{
+		while ( Parent != self->nillnode && tree == Parent->right )
+		{
+			tree = Parent;
+			Parent = Parent->parent;
+		}
+		if (Parent!= self->nillnode && tree->value == Parent->left->value)
+		{
+			return Parent;
+		}
+		else //이 경우 tree에 successor가 존재하지 않는 경우
+		{
+			return NULL;
+		}
+	}
+}
+
+Node* predecessor_search(RB_Tree* self, Node*tree)
+{
+	Node* Parent=NULL;
+	if (tree == self->nillnode)
+	{
+		return NULL;
+	}
+	Parent = tree->parent;
+	if (tree->left != self->nillnode) //왼쪽 자손이 있다면
+	{
+		tree = tree->left;
+		while (tree->right != self->nillnode)
+		{
+			tree = tree->right;
+		}
+		return tree;
+	}
+	else //왼쪽 자손이 없다면
+	{
+		while (Parent != self->nillnode && tree->value == Parent->left->value )
+		{
+			tree = Parent;
+			Parent = Parent->parent;
+		}
+		if (Parent != self->nillnode && tree == Parent->right)
+		{
+			return Parent;
+		}
+		else //이 경우 tree에 predecessor가 존재하지 않는 경우
+		{
+			return NULL;
+		}
+	}
+}
+
 int main(void)
 {
 	int data = 0;
@@ -438,9 +526,14 @@ int main(void)
 	int left_bh = 0;
 	int right_bh = 0;
 	RB_Tree* self = RB_Tree_alloc(); //RB_tree 선언
+	Node* search_node = NULL; //search 한 값 
+	Node* Parent = node_alloc(NULL);
+	Node* successor = NULL;
+	Node* predecessor = NULL;
 
 	/*input.txt*/
 	FILE *fp = fopen("input.txt", "r");
+	FILE *fp2;
 	while (is_running)
 	{
 		fscanf(fp, "%d", &data);
@@ -498,7 +591,87 @@ int main(void)
 		}
 	}
 	fclose(fp);
-	/*search.txt*/
 
+	/*search.txt & output.txt*/
+	is_running = 1;
+	fp = fopen("search.txt", "r");
+	fp2 = fopen("output.txt", "w");
+	
+	while (is_running)
+	{
+		fscanf(fp, "%d", &data); //search.txt로 부터 데이터 읽어 옴
+		if (data == 0)
+		{
+			is_running = 0;
+		}
+		else
+		{
+			search_node = search2(self, self->root, Parent, data); //데이터 값 트리에서 찾음
+			predecessor = predecessor_search(self, search_node);
+			successor = succesor_search(self, search_node);
+			
+			if (search_node != self->nillnode) //찾고자 하는 값이 있는 경우
+			{
+				if (predecessor == NULL && successor == NULL)
+				{
+					fprintf(fp2, "NIL %d NIL\n", search_node->value);
+				}
+				else if(predecessor==NULL)
+				{
+					fprintf(fp2, "NIL %d %d\n",search_node->value,successor->value);
+				}
+				else if (successor == NULL)
+				{
+					fprintf(fp2, "%d %d NIL\n", predecessor->value, search_node->value);
+				}
+				else
+				{
+					fprintf(fp2, "%d %d %d\n", predecessor->value,search_node->value, successor->value);
+				}
+			}
+			else //찾고자 하는 값이 없는 경우
+			{
+					if (data < Parent->value) //parent가 successor인 경우
+					{
+						predecessor = Parent;
+						do
+						{
+							predecessor = predecessor_search(self, predecessor);
+
+						} while ( predecessor != NULL && predecessor->value > data ); //data보다 작은 predecessor나올 때까지 계속
+						
+						if (predecessor == NULL)
+						{
+							fprintf(fp2, "NIL NIL %d\n", Parent->value);
+						}
+						else
+						{
+							fprintf(fp2, "%d NIL %d\n", predecessor->value, Parent->value);
+						}
+					}
+					else if (data >= Parent->value) //parent가 predecessor인 경우
+					{
+						successor = Parent;
+						do
+						{
+							successor = succesor_search(self, successor);
+
+						} while ( successor != NULL && successor->value < data ); //data보다 큰 successor나올 때까지 계속
+
+						if (successor == NULL)
+						{
+							fprintf(fp2, "%d NIL NIL\n", Parent->value);
+						}
+						else
+						{
+							fprintf(fp2, "%d Nil %d\n", Parent->value, successor->value);
+						}
+					}
+			}
+
+		}
+	}
+	fclose(fp);
+	fclose(fp2);
 	return 0;
 }
