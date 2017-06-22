@@ -540,49 +540,16 @@ int main(void)
 		if (data > 0)
 		{
 			tree_insert(node_alloc(data), self, self->root);
-			left_RB_Tree_height(self, self->root, &left_bh);
-			right_RB_Tree_height(self, self->root, &right_bh);
-			if (left_bh != right_bh)
-			{
-				printf("insert한 후 왼쪽 오른쪽 bh가 맞지 않음\n left_bh:%d , right_bh:%d\n", left_bh, right_bh);
-				printf("insert_node:%d\n", data);
-			}
-			printf("insert:%d, insert후 tree\n", data);
-			if (self->root != self->nillnode)
-			{
-				RB_Tree_print(self, self->root, 0);
-			}
-			left_bh = 0;
-			right_bh = 0;
 		}
 		else if (data < 0)
 		{
 			data = -data;
-			printf("%d delete\n", -data);
 			tree_delete(data, self, self->root);
-			left_RB_Tree_height(self, self->root, &left_bh);
-			right_RB_Tree_height(self, self->root, &right_bh);
-			if (left_bh != right_bh)
-			{
-				printf("delete한 후 왼쪽 오른쪽 bh가 맞지 않음\n left_bh:%d , right_bh:%d\n", left_bh, right_bh);
-				printf("delete_node:%d\n", -data);
-				puts("-----------------delete한 후의 bh맞지 않는 트리--------------");
-				RB_Tree_print(self, self->root, 0);
-			}
-			printf("delete후 tree\n");
-			if (self->root != self->nillnode)
-			{
-				RB_Tree_print(self, self->root, 0);
-			}
-			left_bh = 0;
-			right_bh = 0;
-
 		}
 		else if (data == 0)
 		{
 			puts("---------Red_Black tree inorder-------");
 			RB_inorder(self, self->root, &total, &bn_count);
-			left_RB_Tree_height(self, self->root, &left_bh);
 			right_RB_Tree_height(self, self->root, &right_bh);
 			puts("");
 			puts("-----------------------------------");
